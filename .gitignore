@@ -1,0 +1,6 @@
+a30
+genai-perf-artifacts/
+k6-artifacts/
+*.csv
+*.json
+.env

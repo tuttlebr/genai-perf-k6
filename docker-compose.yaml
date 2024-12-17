@@ -1,0 +1,26 @@
+services:
+  triton-genai-perf:
+    image: nvcr.io/nvidia/tritonserver:24.11-py3-sdk
+    shm_size: 8gb
+    env_file:
+      - .env
+    working_dir: /artifacts
+    volumes:
+      - type: bind
+        source: triton-genai-perf.sh
+        target: /triton-genai-perf.sh
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/genai-perf-artifacts:/artifacts
+    command: bash -c /triton-genai-perf.sh
+
+  k6:
+    image: grafana/k6
+    working_dir: /app
+    env_file:
+      - .env
+    volumes:
+      - type: bind
+        source: app
+        target: /app
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/k6-artifacts:/artifacts
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/genai-perf-artifacts/artifacts/meta_llama-3.2-11b-vision-instruct-openai-chat-concurrency${CONCURRENCY}/inputs.json:/data/llm_inputs.json
+    command: run script.js -o experimental-prometheus-rw
