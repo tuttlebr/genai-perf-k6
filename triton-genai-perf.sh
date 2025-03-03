@@ -1,11 +1,38 @@
 #!/bin/bash
 set -e
 
-curl -s ${URL}/v1/health/ready | jq '.message'
-echo
+invoke_url="${OPENAI_BASE_URL}/v1/chat/completions"
 
-curl -s ${URL}/v1/models | jq
-echo
+authorization_header="Authorization: Bearer ${NGC_API_KEY}"
+accept_header="Accept: application/json"
+content_type_header="Content-Type: application/json"
+
+data=$'{
+  "messages": [
+    {
+      "role": "user",
+      "content": "What time is it?"
+    }
+  ],
+  "stream": false,
+  "model": "meta/llama-3.1-8b-instruct",
+  "max_tokens": 1024,
+  "presence_penalty": 0,
+  "frequency_penalty": 0,
+  "top_p": 0.7,
+  "temperature": 0.2
+}'
+
+echo "Invoking ${invoke_url} with ${data}"
+response=$(curl --silent -i -k -w "\n%{http_code}" --request POST \
+  --url "$invoke_url" \
+  --header "$authorization_header" \
+  --header "$accept_header" \
+  --header "$content_type_header" \
+  --data "$data"
+)
+
+echo "$response"
 
 genai-perf profile \
   -m ${MODEL} \
@@ -22,6 +49,10 @@ genai-perf profile \
   --tokenizer ${TOKENIZER} \
   --url ${URL} \
   --streaming \
-  --concurrency ${CONCURRENCY} -- --max-threads=$(nproc)
+  --concurrency ${CONCURRENCY} \
+  --header "Authorization: Bearer ${NGC_API_KEY}" \
+  --header "Content-Type: application/json" \
+  --header "Accept: application/json" \
+  -- --max-threads=$(nproc)
 
-# --extra-inputs ignore_eos:true
+# # --extra-inputs ignore_eos:true

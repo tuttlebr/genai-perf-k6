@@ -1,0 +1,39 @@
+server {
+  listen 80;
+  listen [::]:80;
+  server_name localhost;
+
+  location / {
+    root /usr/share/nginx/html;
+    index index.html index.htm;
+  }
+
+  location /chat/completions {
+    proxy_pass https://api.nvcf.nvidia.com/v2/nvcf/pexec/functions/${LLM_FUNCTION_ID};
+  }
+
+  location /v1/chat/completions {
+    proxy_pass https://api.nvcf.nvidia.com/v2/nvcf/pexec/functions/${LLM_FUNCTION_ID};
+  }
+
+  location /embeddings {
+    proxy_pass https://api.nvcf.nvidia.com/v2/nvcf/pexec/functions/${EMBED_FUNCTION_ID};
+  }
+
+  location /v1/embeddings {
+    proxy_pass https://api.nvcf.nvidia.com/v2/nvcf/pexec/functions/${EMBED_FUNCTION_ID};
+  }
+
+  location /ranking {
+    proxy_pass https://api.nvcf.nvidia.com/v2/nvcf/pexec/functions/${RERANK_FUNCTION_ID};
+  }
+
+  location /v1/ranking {
+    proxy_pass https://api.nvcf.nvidia.com/v2/nvcf/pexec/functions/${RERANK_FUNCTION_ID};
+  }
+
+  error_page 500 502 503 504 /50x.html;
+  location = /50x.html {
+    root /usr/share/nginx/html;
+  }
+}

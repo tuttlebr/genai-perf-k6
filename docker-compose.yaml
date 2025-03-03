@@ -1,10 +1,24 @@
 services:
+  reverse-proxy:
+    image: nginx:stable
+    container_name: nvcf-proxy
+    env_file:
+      - .env
+    volumes:
+      - type: bind
+        source: nginx/templates/default.conf.template
+        target: /etc/nginx/templates/default.conf.template
+    ports:
+      - "80:80"
+      
   triton-genai-perf:
-    image: nvcr.io/nvidia/tritonserver:24.11-py3-sdk
+    image: nvcr.io/nvidia/tritonserver:25.02-py3-sdk
     shm_size: 8gb
     env_file:
       - .env
     working_dir: /artifacts
+    depends_on:
+      - reverse-proxy
     volumes:
       - type: bind
         source: triton-genai-perf.sh
@@ -17,6 +31,8 @@ services:
     working_dir: /app
     env_file:
       - .env
+    depends_on:
+      - reverse-proxy
     volumes:
       - type: bind
         source: app
